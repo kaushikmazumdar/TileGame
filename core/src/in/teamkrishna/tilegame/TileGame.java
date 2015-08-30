@@ -19,7 +19,7 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 	Sprite spriteCover;
 	Sprite spriteRegion[][];
 	OrthographicCamera camera;
-
+//Sprite spritae;
 	boolean bSpriteState[][];
 
 	int iViewPortWidth, iViewPortHeight;
