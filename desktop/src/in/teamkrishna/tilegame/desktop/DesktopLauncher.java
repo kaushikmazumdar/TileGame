@@ -8,8 +8,8 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		config.width=458;
-		config.height=343;
+		config.width = TileGame.iViewPortWidth;
+		config.height = TileGame.iViewPortHeight;
 		new LwjglApplication(new TileGame(), config);
 	}
 }

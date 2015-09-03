@@ -22,7 +22,9 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 //Sprite spritae;
 	boolean bSpriteState[][];
 
-	int iViewPortWidth, iViewPortHeight;
+	public static int iViewPortWidth, iViewPortHeight;
+	//public static final int iViewPortWidth=0;
+	//public static final int iViewPortHeight=0;
 	int iTileWidth, iTileHeight;
 	int iRow, iCol;
 	
@@ -35,8 +37,10 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 
 
 
-		iViewPortWidth = Gdx.graphics.getWidth(); //img.getWidth();
-		iViewPortHeight = Gdx.graphics.getHeight(); //img.getHeight();
+		//iViewPortWidth = Gdx.graphics.getWidth(); //img.getWidth();
+		//iViewPortHeight = Gdx.graphics.getHeight(); //img.getHeight();
+		iViewPortWidth = img.getWidth();
+		iViewPortHeight = img.getHeight();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, iViewPortWidth, iViewPortHeight);
 		//camera.setToOrtho(false, iViewPortWidth, iViewPortHeight);
@@ -73,6 +77,7 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 
+
 		for(int row=0;row<iRow;row++)
 		{
 			for(int col=0;col<iCol;col++)
@@ -91,6 +96,9 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 				spriteCover.draw(batch);
 			}
 		}
+
+
+		//batch.draw(img,0,0);
 		batch.end();
 	}
 
