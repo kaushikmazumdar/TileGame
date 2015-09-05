@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
 
 public class TileGame extends ApplicationAdapter implements InputProcessor {
@@ -19,114 +20,131 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 	Texture img, cover;
 	TextureRegion textureRegion[][];
 	TextureRegion trTemp;
-	Sprite spriteCover;
 	Sprite spriteRegion[][];
+	Sprite coverRegion[][];
 	OrthographicCamera camera;
-//Sprite spritae;
-	boolean bSpriteState[][];
+	BitmapFont font, bfGameOver;
 
+	boolean bSpriteState[][];
+	boolean bGameOver;
 	public static int iViewPortWidth, iViewPortHeight;
-	//public static final int iViewPortWidth=0;
-	//public static final int iViewPortHeight=0;
 	int iTileWidth, iTileHeight;
 	int iRow, iCol;
 	int iMouseX, iMouseY;
 	int iNewWidth, iNewHeight;
-	BitmapFont font;
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("tile.png");
-		cover = new Texture("cover.png");
-		spriteCover = new Sprite(cover);
-		font = new BitmapFont();
+		img = new Texture("tile.jpg");
+		cover = new Texture("cover.jpg");
+
+		FreeTypeFontGenerator ftTmp = new FreeTypeFontGenerator(Gdx.files.internal("amiga.ttf"));
+		FreeTypeFontGenerator.FreeTypeFontParameter ftParam = new FreeTypeFontGenerator.FreeTypeFontParameter();
+		ftParam.size = 15;
+		font = ftTmp.generateFont(ftParam);
 		font.setColor(Color.RED);
 
+		ftParam.size = 75;
+		bfGameOver = ftTmp.generateFont(ftParam);
+		bfGameOver.setColor(Color.WHITE);
 
-		//iViewPortWidth = Gdx.graphics.getWidth(); //img.getWidth();
-		//iViewPortHeight = Gdx.graphics.getHeight(); //img.getHeight();
 		iViewPortWidth = img.getWidth();
 		iViewPortHeight = img.getHeight();
+
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, iViewPortWidth, iViewPortHeight);
-		//camera.setToOrtho(false, iViewPortWidth, iViewPortHeight);
 
 		iRow=2;
-		iCol=2;
+		iCol=3;
 		iTileWidth = iViewPortWidth/iCol;
 		iTileHeight = iViewPortHeight/iRow;
 		textureRegion = new TextureRegion[iRow][iCol];
 		bSpriteState = new boolean[iRow][iCol];
 		spriteRegion = new Sprite[iRow][iCol];
-
-		System.out.println("width: " + Gdx.graphics.getWidth());
-		System.out.println("height:" + Gdx.graphics.getHeight());
+		coverRegion = new Sprite[iRow][iCol];
+		bGameOver = false;
 
 		for(int row=0;row<iRow;row++)
 		{
 			for(int col=0;col<iCol;col++)
 			{
-				//textureRegion[row][col] = new TextureRegion(img,col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
 				trTemp = new TextureRegion(img,col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
 				spriteRegion[row][col] = new Sprite(trTemp);
-				//spriteRegion[row][col].setBounds(col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
+				trTemp = new TextureRegion(cover,col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
+				coverRegion[row][col] = new Sprite(trTemp);
 				bSpriteState[row][col]=false;
-
-				System.out.println(row + "," + col + "," + trTemp.getRegionX() + "," + trTemp.getRegionY());
 			}
 		}
-
 		Gdx.input.setInputProcessor(this);
 	}
 
 	@Override
 	public void render() {
-		//batch.setTransformMatrix(camera.view);
 		batch.setProjectionMatrix(camera.combined);
-		//batch.setProjectionMatrix(camera.projection);
 		batch.begin();
 
 		for(int row=0;row<iRow;row++)
 		{
 			for(int col=0;col<iCol;col++)
 			{
-				//batch.draw(textureRegion[row][col], col * iTileWidth, (iRow - 1 - row) * iTileHeight);
 				spriteRegion[row][col].setPosition(col * iTileWidth, (iRow - 1 - row) * iTileHeight);
 				spriteRegion[row][col].draw(batch);
-
-				spriteCover.setPosition(col * iTileWidth, (iRow - 1 - row) * iTileHeight);
+				coverRegion[row][col].setPosition(col * iTileWidth, (iRow - 1 - row) * iTileHeight);
 
 				if(bSpriteState[row][col])
-					spriteCover.setAlpha(0.0f);
+					coverRegion[row][col].setAlpha(0.0f);
 				else
-					spriteCover.setAlpha(1.0f);
+					coverRegion[row][col].setAlpha(1.0f);
 
-				spriteCover.draw(batch);
+				coverRegion[row][col].draw(batch);
 			}
 		}
 
-		//spriteRegion[0][0].setPosition(0,0);
-		//spriteRegion[0][0].draw(batch);
-
-
-		//batch.draw(img,0,0);
 		String str = "mouse x:" + iMouseX + " | mouse y:" + iMouseY;
-		font.draw(batch, str, 5, 50);
+		font.draw(batch, str, 5, 100);
 
 		str = "new width:" + iNewWidth + " | " + "new height:" + iNewHeight;
-		font.draw(batch,str,5,80);
+		font.draw(batch,str,5,150);
+
+		if(bGameOver)
+		{
+			bfGameOver.draw(batch,"Game Over",iViewPortWidth/2,iViewPortHeight/2);
+		}
 		batch.end();
+
+		if(checkAll())
+		{
+			bGameOver = true;
+		}
 	}
 
 	public void resize(int width, int height)
 	{
-		//camera.update();
 		batch.dispose();
 		batch = new SpriteBatch();
 
 		iNewWidth=width;
 		iNewHeight=height;
+	}
+
+	public void dispose()
+	{
+		batch.dispose();
+		img.dispose();
+		cover.dispose();
+		trTemp.getTexture().dispose();
+
+		for(int i=0; i<iRow;i++)
+		{
+			for(int j=0; j<iCol; j++)
+			{
+				spriteRegion[i][j].getTexture().dispose();
+				coverRegion[i][j].getTexture().dispose();
+			}
+		}
+
+		font.dispose();
 	}
 
 	@Override
@@ -146,8 +164,8 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		System.out.println("x: " + screenX);
-		System.out.println("y: " + screenY);
+		Gdx.app.log("touchDown", "x: " + screenX);
+		Gdx.app.log("touchDown","y: " + screenY);
 
 		float fPosX = TransformX(screenX);
 		float fPosY = TransformY((screenY));
@@ -156,13 +174,9 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 		{
 			for(int col=0; col<iCol; col++)
 			{
-				Rectangle rt = spriteRegion[row][col].getBoundingRectangle();
-				System.out.println("rectangle:" + rt.getX() + "|" + rt.getY() + "|" + rt.getWidth() + "|" + rt.getHeight() +
-						"|" + fPosX + "|" + fPosY);
-				//if(spriteRegion[row][col].getBoundingRectangle().contains(screenX,screenY))
 				if(spriteRegion[row][col].getBoundingRectangle().contains(fPosX,fPosY))
 				{
-					System.out.println("yeah: " + row +","+col);
+					Gdx.app.log("touchDown", "yeah: " + row + "," + col);
 					bSpriteState[iRow-1-row][col]=true;
 				}
 			}
@@ -182,8 +196,6 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-
-		//System.out.println("mouse x:" + screenX + " | mouse y:" + screenY );
 		iMouseX=screenX;
 		iMouseY=screenY;
 
@@ -198,6 +210,22 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 	float TransformY(int yPos)
 	{
 		return (float)((float)((yPos)*iViewPortHeight)/(float)iNewHeight);
+	}
+
+	public boolean checkAll()
+	{
+		if(bGameOver)
+			return false;
+
+		boolean tmp=bSpriteState[0][0];
+		for(int i=0;i<iRow;i++)
+		{
+			for(int j=0;j<iCol;j++)
+			{
+				tmp &= bSpriteState[i][j];
+			}
+		}
+		return tmp;
 	}
 
 	@Override
