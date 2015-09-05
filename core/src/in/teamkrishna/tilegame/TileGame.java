@@ -4,12 +4,15 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 
 public class TileGame extends ApplicationAdapter implements InputProcessor {
 	SpriteBatch batch;
@@ -27,6 +30,9 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 	//public static final int iViewPortHeight=0;
 	int iTileWidth, iTileHeight;
 	int iRow, iCol;
+	int iMouseX, iMouseY;
+	int iNewWidth, iNewHeight;
+	BitmapFont font;
 	
 	@Override
 	public void create () {
@@ -34,7 +40,8 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 		img = new Texture("tile.png");
 		cover = new Texture("cover.png");
 		spriteCover = new Sprite(cover);
-
+		font = new BitmapFont();
+		font.setColor(Color.RED);
 
 
 		//iViewPortWidth = Gdx.graphics.getWidth(); //img.getWidth();
@@ -63,9 +70,10 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 				//textureRegion[row][col] = new TextureRegion(img,col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
 				trTemp = new TextureRegion(img,col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
 				spriteRegion[row][col] = new Sprite(trTemp);
+				//spriteRegion[row][col].setBounds(col*iTileWidth,row*iTileHeight,iTileWidth,iTileHeight);
 				bSpriteState[row][col]=false;
 
-				System.out.println(row + "," + col + "," + trTemp.getRegionWidth() + "," + trTemp.getRegionHeight());
+				System.out.println(row + "," + col + "," + trTemp.getRegionX() + "," + trTemp.getRegionY());
 			}
 		}
 
@@ -74,9 +82,10 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public void render() {
+		//batch.setTransformMatrix(camera.view);
 		batch.setProjectionMatrix(camera.combined);
+		//batch.setProjectionMatrix(camera.projection);
 		batch.begin();
-
 
 		for(int row=0;row<iRow;row++)
 		{
@@ -97,9 +106,27 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 			}
 		}
 
+		//spriteRegion[0][0].setPosition(0,0);
+		//spriteRegion[0][0].draw(batch);
+
 
 		//batch.draw(img,0,0);
+		String str = "mouse x:" + iMouseX + " | mouse y:" + iMouseY;
+		font.draw(batch, str, 5, 50);
+
+		str = "new width:" + iNewWidth + " | " + "new height:" + iNewHeight;
+		font.draw(batch,str,5,80);
 		batch.end();
+	}
+
+	public void resize(int width, int height)
+	{
+		//camera.update();
+		batch.dispose();
+		batch = new SpriteBatch();
+
+		iNewWidth=width;
+		iNewHeight=height;
 	}
 
 	@Override
@@ -122,11 +149,18 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 		System.out.println("x: " + screenX);
 		System.out.println("y: " + screenY);
 
+		float fPosX = TransformX(screenX);
+		float fPosY = TransformY((screenY));
+
 		for(int row=0; row<iRow; row++)
 		{
 			for(int col=0; col<iCol; col++)
 			{
-				if(spriteRegion[row][col].getBoundingRectangle().contains(screenX,screenY))
+				Rectangle rt = spriteRegion[row][col].getBoundingRectangle();
+				System.out.println("rectangle:" + rt.getX() + "|" + rt.getY() + "|" + rt.getWidth() + "|" + rt.getHeight() +
+						"|" + fPosX + "|" + fPosY);
+				//if(spriteRegion[row][col].getBoundingRectangle().contains(screenX,screenY))
+				if(spriteRegion[row][col].getBoundingRectangle().contains(fPosX,fPosY))
 				{
 					System.out.println("yeah: " + row +","+col);
 					bSpriteState[iRow-1-row][col]=true;
@@ -148,11 +182,27 @@ public class TileGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-		return false;
+
+		//System.out.println("mouse x:" + screenX + " | mouse y:" + screenY );
+		iMouseX=screenX;
+		iMouseY=screenY;
+
+		return true;
+	}
+
+	float TransformX(int xPos)
+	{
+		return (float)(xPos*iViewPortWidth/iNewWidth);
+	}
+
+	float TransformY(int yPos)
+	{
+		return (float)((float)((yPos)*iViewPortHeight)/(float)iNewHeight);
 	}
 
 	@Override
 	public boolean scrolled(int amount) {
 		return false;
 	}
+
 }
